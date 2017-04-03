@@ -106,7 +106,7 @@ use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\Network;
 use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\AnimatePacket;
-use pocketmine\network\protocol\BatchPacket;
+//use pocketmine\network\protocol\BatchPacket;
 use pocketmine\network\protocol\ContainerClosePacket;
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\DataPacket;
@@ -695,15 +695,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		} else {
 			$data = $payload['English'];
 		}
-
+        
 		$this->usedChunks[Level::chunkHash($x, $z)] = true;
 		$this->chunkLoadCount++;
 
-		$pk = new BatchPacket();
-		$pk->payload = $data;
-		$pk->encode();
-		$pk->isEncoded = true;
-		$this->dataPacket($pk);
+		$pk = new FullChunkDataPacket($data);
+        $pk->isEncoded = true;
+        $pk->isZiped = true;
+        $this->dataPacket($pk);
 
 		$this->getServer()->getDefaultLevel()->useChunk($x, $z, $this);
 
@@ -1726,13 +1725,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return;
 		}
 
-		if($packet->pid() === ProtocolInfo::BATCH_PACKET){
-			/** @var BatchPacket $packet */
-			//Timings::$timerBatchPacket->startTiming();
-			$this->server->getNetwork()->processBatch($packet, $this);
-			//Timings::$timerBatchPacket->stopTiming();
-			return;
-		}
+//		if($packet->pid() === ProtocolInfo::BATCH_PACKET){
+//			/** @var BatchPacket $packet */
+//			//Timings::$timerBatchPacket->startTiming();
+//			$this->server->getNetwork()->processBatch($packet, $this);
+//			//Timings::$timerBatchPacket->stopTiming();
+//			return;
+//		}
 
 		$this->server->getPluginManager()->callEvent($ev = new DataPacketReceiveEvent($this, $packet));
 		if($ev->isCancelled()){

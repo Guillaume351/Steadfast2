@@ -2105,16 +2105,14 @@ class Level implements ChunkManager, Metadatable{
 			return;
 		} 
 		$index = PHP_INT_SIZE === 8 ? ((($x) & 0xFFFFFFFF) << 32) | (( $z) & 0xFFFFFFFF) : ($x) . ":" . ( $z);
-		if(isset($this->chunkSendTasks[$index])){
-
-			if(ADVANCED_CACHE == true){
+		if (isset($this->chunkSendTasks[$index])) {
+			if (ADVANCED_CACHE == true) {
 				Cache::add("world:" . $this->getId() . ":" . $index, $payload, 60);
 			}
-			foreach($this->chunkSendQueue[$index] as $player){
+			foreach ($this->chunkSendQueue[$index] as $player) {
 				/** @var Player $player */
-				if($player->isConnected() and isset($player->usedChunks[$index])){
+				if ($player->isConnected() and isset($player->usedChunks[$index])) {
 					$player->sendChunk($x, $z, $payload);
-					
 				}
 			}
 			unset($this->chunkSendQueue[$index]);
