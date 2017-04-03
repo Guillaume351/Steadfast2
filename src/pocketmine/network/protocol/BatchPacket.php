@@ -34,8 +34,11 @@ class BatchPacket extends DataPacket{
 	}
 
 	public function encode(){
-		$this->reset();
-		$this->putString($this->payload);
+//		$this->reset();
+        $this->offset = 0;
+//		$this->putString($this->payload);
+        $this->buffer = $this->payload;
+        $this->isZiped = true;
 	}
 
 }

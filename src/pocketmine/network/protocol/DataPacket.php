@@ -28,15 +28,16 @@ namespace pocketmine\network\protocol;
 #endif
 
 
+use pocketmine\utils\Binary;
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Utils;
-
 
 abstract class DataPacket extends BinaryStream{
 
 	const NETWORK_ID = 0;
 
 	public $isEncoded = false;
+    public $isZiped = false;
 	private $channel = 0;
 
 	public function pid(){
@@ -85,5 +86,15 @@ abstract class DataPacket extends BinaryStream{
 
 		return $data;
 	}
+    
+    public function zip() {
+        if ($this->isZiped) {
+            return;
+        }
+        if (!$this->isEncoded) {
+            $this->encode();
+        }
+        $this->buffer = zlib_encode(Binary::writeVarInt(strlen($this->buffer)) . $this->buffer, ZLIB_ENCODING_DEFLATE, 7);
+    }
 	
 }

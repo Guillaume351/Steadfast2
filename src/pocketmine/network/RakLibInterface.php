@@ -36,6 +36,7 @@ use raklib\RakLib;
 use raklib\server\RakLibServer;
 use raklib\server\ServerHandler;
 use raklib\server\ServerInstance;
+use pocketmine\utils\BinaryStream;
 
 class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 	
@@ -175,10 +176,10 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 	public function handleEncapsulated($identifier, EncapsulatedPacket $packet, $flags){
 		if(isset($this->players[$identifier])){
 			try{
-				if($packet->buffer !== ""){
-					$pk = $this->getPacket($packet->buffer);				
-					if (!is_null($pk)) {
-						$pk->decode();
+				if(!empty($packet->buffer)){		
+					$packets = $this->getPacket($packet->buffer);
+                    foreach ($packets as $pk) {
+                        $pk->decode();
 						$this->players[$identifier]->handleDataPacket($pk);
 					}
 				}
@@ -241,9 +242,16 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 		if(isset($this->identifiers[$player])){			
 			$identifier = $this->identifiers[$player];
 			$pk = null;
+            
 			if(!$packet->isEncoded){
 				$packet->encode();
-			}elseif(!$needACK){
+			}
+            
+            if (!$packet->isZiped) {
+                $packet->zip();
+            }
+            
+            if(!$needACK){
 				if (isset($packet->__encapsulatedPacket)) {
 					unset($packet->__encapsulatedPacket);
 				}
@@ -278,18 +286,22 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 	}
 	
 	private function getPacket($buffer){
-		if(ord($buffer{0}) == 0xfe){
-			$buffer = substr($buffer, 1);	
-			$pid = ord($buffer{0});			
-		} else {
-			return;
-		}
-		if(($data = $this->network->getPacket($pid)) === null){
-			return null;
-		}
-		$data->setBuffer($buffer, 1);
-
-		return $data;
+		$result = [];
+        if(ord($buffer[0]) != 0xfe){
+            return $result;
+        }
+        $bs = new BinaryStream(zlib_decode(substr($buffer, 1)));
+        while ($bs->offset < strlen($bs->buffer)) {
+            $pkBuffer = $bs->getString();
+            $pid = ord($pkBuffer[0]);
+            $packet = $this->network->getPacket($pid);
+            if($packet === null){
+                continue;
+            }
+            $packet->setBuffer($pkBuffer, 1);
+            $result[] = $packet;
+        }
+        return $result;
 	}
 	
 	public function putReadyPacket($player, $buffer) {

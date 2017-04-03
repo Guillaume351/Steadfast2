@@ -698,7 +698,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$this->usedChunks[Level::chunkHash($x, $z)] = true;
 		$this->chunkLoadCount++;
-
+        
 		$pk = new BatchPacket();
 		$pk->payload = $data;
 		$pk->encode();
