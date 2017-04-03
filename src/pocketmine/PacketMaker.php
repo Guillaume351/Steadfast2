@@ -7,7 +7,7 @@ use raklib\RakLib;
 use pocketmine\network\CachedEncapsulatedPacket;
 use pocketmine\network\protocol\DataPacket;
 use pocketmine\utils\Binary;
-//use pocketmine\network\protocol\BatchPacket;
+use pocketmine\network\protocol\BatchPacket;
 use pocketmine\network\protocol\MoveEntityPacket;
 use pocketmine\network\protocol\SetEntityMotionPacket;
 
@@ -82,59 +82,59 @@ class PacketMaker extends Worker {
 	}
 	
 	protected function checkPacket($data) {
-//		if (isset($data['moveData'])) {
-//			foreach ($data['moveData'] as $identifier => $moveData) {
-//				$moveStr = "";
-//				foreach ($moveData['data'] as $singleMoveData) {
-//					$pk = new MoveEntityPacket();
-//					$pk->entities = [$singleMoveData];
-//					$pk->encode();
-//					$moveStr .= Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;					
-//				}
-//				$buffer = zlib_encode($moveStr, ZLIB_ENCODING_DEFLATE, 7);
-//				$pkBatch = new BatchPacket();
-//				$pkBatch->payload = $buffer;
-//				$pkBatch->encode();
-//				$pkBatch->isEncoded = true;
-//				$this->externalQueue[] = $this->makeBuffer($identifier, $pkBatch, false, false);
-//			}	
-//			foreach ($data['motionData'] as $identifier => $motionData) {
-//				$motionStr = "";
-//				foreach ($motionData['data'] as $singleMotionData) {
-//					$pk = new SetEntityMotionPacket();
-//					$pk->entities = [$singleMotionData];
-//					$pk->encode();
-//					$motionStr .= Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;		
-//				}
-//				$buffer = zlib_encode($motionStr, ZLIB_ENCODING_DEFLATE, 7);
-//				$pkBatch = new BatchPacket();
-//				$pkBatch->payload = $buffer;
-//				$pkBatch->encode();
-//				$pkBatch->isEncoded = true;
-//				$this->externalQueue[] = $this->makeBuffer($identifier, $pkBatch, false, false);
-//			}
-//		} elseif($data['isBatch']) {
-//			$str = "";
-//			foreach($data['packets'] as $p){
-//				if($p instanceof DataPacket){
-//					if(!$p->isEncoded){					
-//						$p->encode();
-//					}
-//					$str .= Binary::writeVarInt(strlen($p->buffer)) . $p->buffer;					
-//				}else{					
-//					$str .= Binary::writeVarInt(strlen($p)) . $p;
-//				}
-//			}
-//			$buffer = zlib_encode($str, ZLIB_ENCODING_DEFLATE, $data['networkCompressionLevel']);
-//			$pk = new BatchPacket();
-//			$pk->payload = $buffer;
-//			$pk->encode();
-//			$pk->isEncoded = true;
-//			
-//			foreach($data['targets'] as $target){
-//				$this->externalQueue[] = $this->makeBuffer($target[0], $pk, false, false);
-//			}
-//		}
+		if (isset($data['moveData'])) {
+			foreach ($data['moveData'] as $identifier => $moveData) {
+				$moveStr = "";
+				foreach ($moveData['data'] as $singleMoveData) {
+					$pk = new MoveEntityPacket();
+					$pk->entities = [$singleMoveData];
+					$pk->encode();
+					$moveStr .= Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;					
+				}
+				$buffer = zlib_encode($moveStr, ZLIB_ENCODING_DEFLATE, 7);
+				$pkBatch = new BatchPacket();
+				$pkBatch->payload = $buffer;
+				$pkBatch->encode();
+				$pkBatch->isEncoded = true;
+				$this->externalQueue[] = $this->makeBuffer($identifier, $pkBatch, false, false);
+			}	
+			foreach ($data['motionData'] as $identifier => $motionData) {
+				$motionStr = "";
+				foreach ($motionData['data'] as $singleMotionData) {
+					$pk = new SetEntityMotionPacket();
+					$pk->entities = [$singleMotionData];
+					$pk->encode();
+					$motionStr .= Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;		
+				}
+				$buffer = zlib_encode($motionStr, ZLIB_ENCODING_DEFLATE, 7);
+				$pkBatch = new BatchPacket();
+				$pkBatch->payload = $buffer;
+				$pkBatch->encode();
+				$pkBatch->isEncoded = true;
+				$this->externalQueue[] = $this->makeBuffer($identifier, $pkBatch, false, false);
+			}
+		} elseif($data['isBatch']) {
+			$str = "";
+			foreach($data['packets'] as $p){
+				if($p instanceof DataPacket){
+					if(!$p->isEncoded){					
+						$p->encode();
+					}
+					$str .= Binary::writeVarInt(strlen($p->buffer)) . $p->buffer;					
+				}else{					
+					$str .= Binary::writeVarInt(strlen($p)) . $p;
+				}
+			}
+			$buffer = zlib_encode($str, ZLIB_ENCODING_DEFLATE, $data['networkCompressionLevel']);
+			$pk = new BatchPacket();
+			$pk->payload = $buffer;
+			$pk->encode();
+			$pk->isEncoded = true;
+			
+			foreach($data['targets'] as $target){
+				$this->externalQueue[] = $this->makeBuffer($target[0], $pk, false, false);
+			}
+		}
 		
 	}
 

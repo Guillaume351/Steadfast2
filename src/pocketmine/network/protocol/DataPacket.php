@@ -38,7 +38,6 @@ abstract class DataPacket extends BinaryStream{
 
 	public $isEncoded = false;
 	private $channel = 0;
-    public $isZiped = false;
 
 	public function pid(){
 		return $this::NETWORK_ID;
@@ -86,14 +85,5 @@ abstract class DataPacket extends BinaryStream{
 
 		return $data;
 	}
-    
-    public function zip() {
-        if ($this->isZiped) {
-            return;
-        }
-        $bs = new BinaryStream();
-        $bs->putString($this->buffer);
-        $this->buffer = zlib_encode($bs->buffer, ZLIB_ENCODING_DEFLATE);
-    }
 	
 }

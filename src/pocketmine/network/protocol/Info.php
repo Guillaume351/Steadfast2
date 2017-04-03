@@ -30,8 +30,10 @@ interface Info{
 	/**
 	 * Minecraft: PE protocol versions
 	 */
-	const CURRENT_PROTOCOL = 110;
-	const ACCEPTED_PROTOCOLS = [110];
+	const CURRENT_PROTOCOL = 101;
+//	const NEWEST_PROTOCOL = 82;
+//	const OLDEST_PROTOCOL = 81;
+	const ACCEPTED_PROTOCOLS = [92, 100, 101, 102, 105];
 
 	/**
 	 * Minecraft: PE packets
@@ -42,7 +44,6 @@ interface Info{
 //	const CLIENT_TO_SERVER_HANDSHAKE_PACKET = 0x04;
     const DISCONNECT_PACKET = 0x05;
     const RESOURCE_PACKS_INFO_PACKET = 0x06;
-//    const BATCH_PACKET = 0x06;
 //	const RESOURCE_PACKS_STACK_PACKET = 0x07;
 //	const RESOURCE_PACKS_CLIENT_RESPONSE_PACKET = 0x08;
     const TEXT_PACKET = 0x09;

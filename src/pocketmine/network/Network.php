@@ -233,54 +233,54 @@ class Network {
 		return $this->server;
 	}
 			
-//	public function processBatch(BatchPacket $packet, Player $p){
-//		$str = @\zlib_decode($packet->payload, 1024 * 1024 * 64); //Max 64MB
-//		if ($str === false) {
-//			$p->checkVersion();
-//			return;
-//		}
-//		$len = strlen($str);
-//		$offset = 0;
-//		try{
-//			$stream = new BinaryStream($str);
-//			$length = strlen($str);
-//			while ($stream->getOffset() < $length) {
-//				$buf = $stream->getString();
-//				if(strlen($buf) === 0){
-//					throw new \InvalidStateException("Empty or invalid BatchPacket received");
+	public function processBatch(BatchPacket $packet, Player $p){
+		$str = @\zlib_decode($packet->payload, 1024 * 1024 * 64); //Max 64MB
+		if ($str === false) {
+			$p->checkVersion();
+			return;
+		}
+		$len = strlen($str);
+		$offset = 0;
+		try{
+			$stream = new BinaryStream($str);
+			$length = strlen($str);
+			while ($stream->getOffset() < $length) {
+				$buf = $stream->getString();
+				if(strlen($buf) === 0){
+					throw new \InvalidStateException("Empty or invalid BatchPacket received");
+				}
+
+//				if (ord($buf{0}) !== 0x14) {
+//					echo 'Recive: 0x'. bin2hex($buf{0}).PHP_EOL;
 //				}
-//
-////				if (ord($buf{0}) !== 0x14) {
-////					echo 'Recive: 0x'. bin2hex($buf{0}).PHP_EOL;
-////				}
-//				
-//				if (($pk = $this->getPacket(ord($buf{0}))) !== null) {
-//					if ($pk::NETWORK_ID === Info::BATCH_PACKET) {
-//						throw new \InvalidStateException("Invalid BatchPacket inside BatchPacket");
-//					}
-//
-//					$pk->setBuffer($buf, 1);
-//					$pk->decode();
-//					$p->handleDataPacket($pk);
-//					if ($pk->getOffset() <= 0) {
-//						return;
-//					}
-//				} else {
-////					echo "UNKNOWN PACKET: ".bin2hex($buf{0}).PHP_EOL;
-////					echo "Buffer DEC: ".$buf.PHP_EOL;
-////					echo "Buffer HEX: ".bin2hex($buf).PHP_EOL;
-//				}
-//			}
-//		}catch(\Exception $e){
-//			if(\pocketmine\DEBUG > 1){
-//				$logger = $this->server->getLogger();
-//				if($logger instanceof MainLogger){
-//					$logger->debug("BatchPacket " . " 0x" . bin2hex($packet->payload));
-//					$logger->logException($e);
-//				}
-//			}
-//		}
-//	}
+				
+				if (($pk = $this->getPacket(ord($buf{0}))) !== null) {
+					if ($pk::NETWORK_ID === Info::BATCH_PACKET) {
+						throw new \InvalidStateException("Invalid BatchPacket inside BatchPacket");
+					}
+
+					$pk->setBuffer($buf, 1);
+					$pk->decode();
+					$p->handleDataPacket($pk);
+					if ($pk->getOffset() <= 0) {
+						return;
+					}
+				} else {
+//					echo "UNKNOWN PACKET: ".bin2hex($buf{0}).PHP_EOL;
+//					echo "Buffer DEC: ".$buf.PHP_EOL;
+//					echo "Buffer HEX: ".bin2hex($buf).PHP_EOL;
+				}
+			}
+		}catch(\Exception $e){
+			if(\pocketmine\DEBUG > 1){
+				$logger = $this->server->getLogger();
+				if($logger instanceof MainLogger){
+					$logger->debug("BatchPacket " . " 0x" . bin2hex($packet->payload));
+					$logger->logException($e);
+				}
+			}
+		}
+	}
 
 	/**
 	 * @param $id
@@ -339,7 +339,7 @@ class Network {
 		$this->registerPacket(ProtocolInfo::LOGIN_PACKET, LoginPacket::class);
 		$this->registerPacket(ProtocolInfo::PLAY_STATUS_PACKET, PlayStatusPacket::class);
 		$this->registerPacket(ProtocolInfo::DISCONNECT_PACKET, DisconnectPacket::class);
-//		$this->registerPacket(ProtocolInfo::BATCH_PACKET, BatchPacket::class);
+		$this->registerPacket(ProtocolInfo::BATCH_PACKET, BatchPacket::class);
 		$this->registerPacket(ProtocolInfo::TEXT_PACKET, TextPacket::class);
 		$this->registerPacket(ProtocolInfo::SET_TIME_PACKET, SetTimePacket::class);
 		$this->registerPacket(ProtocolInfo::START_GAME_PACKET, StartGamePacket::class);
