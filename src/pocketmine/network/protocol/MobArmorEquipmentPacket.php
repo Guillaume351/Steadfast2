@@ -31,6 +31,8 @@ class MobArmorEquipmentPacket extends DataPacket{
 	public $slots = [];
 
 	public function decode(){
+//        var_dump(bin2hex($this->buffer));
+        
 		$this->eid = $this->getVarInt();
 		$this->slots[0] = $this->getSlot();
 		$this->slots[1] = $this->getSlot();

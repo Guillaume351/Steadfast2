@@ -196,13 +196,14 @@ class BinaryStream extends \stdClass{
 		$aux = $this->getSignedVarInt();
 		$meta = $aux >> 8;
 		$count = $aux & 0xff;
-				
+        
 		$nbtLen = $this->getLShort();		
 		$nbt = "";		
 		if($nbtLen > 0){
 			$nbt = $this->get($nbtLen);
 		}
-		
+        /** @todo выяснить что это за 2 байта */
+		$this->offset += 2;
 		return Item::get(
 			$id,
 			$meta,
@@ -218,9 +219,11 @@ class BinaryStream extends \stdClass{
 		}
 		$this->putSignedVarInt($item->getId());
 		$this->putSignedVarInt(($item->getDamage() === null ? 0  : ($item->getDamage() << 8)) + $item->getCount());	
-		$nbt = $item->getCompound();		
+		$nbt = $item->getCompound();
 		$this->putLShort(strlen($nbt));
-		$this->put($nbt);		
+		$this->put($nbt);
+        $this->putByte(0);
+        $this->putByte(0);
 	}
 
 	public function feof(){

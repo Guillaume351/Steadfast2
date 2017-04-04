@@ -1085,14 +1085,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->dataPacket($pk);
 		$this->sendSettings();
 
-		if($this->gamemode === Player::SPECTATOR){
+		if ($this->gamemode === Player::SPECTATOR) {
 			$pk = new ContainerSetContentPacket();
+            $pk->entityId = $this->id;
 			$pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
 			$this->dataPacket($pk);
-		}elseif($this->gamemode === Player::CREATIVE) {
+		} else if ($this->gamemode === Player::CREATIVE) {
 			$pk = new ContainerSetContentPacket();
+            $pk->entityId = $this->id;
 			$pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
-			foreach(Item::getCreativeItems() as $item){
+			foreach (Item::getCreativeItems() as $item) {
 				$pk->slots[] = clone $item;
 			}
 			$this->dataPacket($pk);
@@ -3644,10 +3646,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		
 		if ($this->gamemode === Player::SPECTATOR) {
 			$pk = new ContainerSetContentPacket();
+            $pk->entityId = $this->id;
 			$pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
 			$this->dataPacket($pk);
-		} elseif ($this->gamemode === Player::CREATIVE) {
+		} else if ($this->gamemode === Player::CREATIVE) {
 			$pk = new ContainerSetContentPacket();
+            $pk->entityId = $this->id;
 			$pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
 			foreach (Item::getCreativeItems() as $item) {
 				$pk->slots[] = clone $item;

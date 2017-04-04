@@ -334,6 +334,7 @@ class PlayerInventory extends BaseInventory{
 				$pk2 = new ContainerSetContentPacket();
 				$pk2->windowid = ContainerSetContentPacket::SPECIAL_ARMOR;
 				$pk2->slots = $armor;
+                $pk2->entityId = $player->getId();
 				$player->dataPacket($pk2);
 			}else{
 				$player->dataPacket($pk);
@@ -404,7 +405,7 @@ class PlayerInventory extends BaseInventory{
 			$pk->slots[$i] = $this->getItem($i);
 		}
 
-		foreach($target as $player){
+		foreach ($target as $player) {
 			$pk->hotbar = [];
 			if($player === $this->getHolder()){
 				for($i = 0; $i < $this->getHotbarSize(); ++$i){
@@ -417,6 +418,7 @@ class PlayerInventory extends BaseInventory{
 				continue;
 			}
 			$pk->windowid = $id;
+            $pk->entityId = $player->getId();
 			$player->dataPacket(clone $pk);
 		}
 	}

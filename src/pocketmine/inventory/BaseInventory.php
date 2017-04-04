@@ -427,19 +427,21 @@ abstract class BaseInventory implements Inventory{
 		if($target instanceof Player){
 			$target = [$target];
 		}
-
-		$pk = new ContainerSetContentPacket();
-		$pk->slots = [];
-		for($i = 0; $i < $this->getSize(); ++$i){
-			$pk->slots[$i] = $this->getItem($i);
+        
+		$slots = [];
+		for ($i = 0; $i < $this->getSize(); ++$i) {
+			$slots[$i] = $this->getItem($i);
 		}
 
-		foreach($target as $player){
+		foreach ($target as $player) {
 			if(($id = $player->getWindowId($this)) === -1 or $player->spawned !== true){
 				$this->close($player);
 				continue;
 			}
+            $pk = new ContainerSetContentPacket();
 			$pk->windowid = $id;
+            $pk->slots = $slots;
+            $pk->entityId = $player->getId();
 			$player->dataPacket($pk);
 		}
 	}

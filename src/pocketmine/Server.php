@@ -2356,7 +2356,7 @@ class Server{
 			$this->craftList = $pk;
 		}
 		
-		$this->batchPackets([$p], [$this->craftList]);
+//		$this->batchPackets([$p], [$this->craftList]);
 	}
 
 	public function addPlayer($identifier, Player $player){
