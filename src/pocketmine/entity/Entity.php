@@ -156,9 +156,16 @@ abstract class Entity extends Location implements Metadatable{
     const DATA_FLAG_NOT_IN_WATER = 33;
     const DATA_FLAG_CHESTED_MOUNT = 34;
     const DATA_FLAG_IS_STACKABLE = 35;
-    const DATA_FLAG_IS_STANDING = 37;
+    // 36 - SpikeFeature::postProcessMobsAt | EnderCrystalModel::render
+    const DATA_FLAG_IS_STANDING = 37; // StompAttackGoal | PolarBear::normalTick
+    // 38 - MobRender::renderModel
+    // 39 - ???
+    // 40 - EvocationIllagerModel::render
+    // 41 - VexModel::setupAnim
+    // 42 - related to Vex
     const DATA_FLAG_IS_WASD_CONTROLLED = 43;
     const DATA_FLAG_CAN_POWER_JUMP = 44;
+    // 45 - ThrownPotion::getEntityTypeId | ThrownPotion::queryEntityRenderer
 	
 	public static $entityCount = 1;
 	/** @var Entity[] */
