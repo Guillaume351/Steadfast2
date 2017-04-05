@@ -28,6 +28,7 @@ class ContainerSetContentPacket extends DataPacket{
 	const NETWORK_ID = Info::CONTAINER_SET_CONTENT_PACKET;
 
 	const SPECIAL_INVENTORY = 0;
+    const SPECIAL_OFF_HAND = 0x77; // 327702008c0480010000000000 - set arrow x64 in off-hand
 	const SPECIAL_ARMOR = 0x78;
 	const SPECIAL_CREATIVE = 0x79;
 

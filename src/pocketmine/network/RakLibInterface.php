@@ -298,7 +298,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
                 var_dump('Recive: 0x' . bin2hex($pkBuffer[0]));
             }
             $packet = $this->network->getPacket($pid);
-            if($packet === null){
+            if ($packet === null) {
                 continue;
             }
             $packet->setBuffer($pkBuffer, 1);

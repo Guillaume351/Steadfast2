@@ -404,6 +404,10 @@ class PlayerInventory extends BaseInventory{
 		for($i = 0; $i < $this->getSize(); ++$i){ //Do not send armor by error here
 			$pk->slots[$i] = $this->getItem($i);
 		}
+        
+        for ($i = $this->getSize(); $i < $this->getSize() + 9; ++$i) {
+            $pk->slots[$i] = clone $this->air;
+        }
 
 		foreach ($target as $player) {
 			$pk->hotbar = [];
