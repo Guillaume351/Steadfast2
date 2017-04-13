@@ -49,6 +49,10 @@ class StartGamePacket extends PEPacket{
 		$this->putVarInt($this->eid); //EntityUniqueID
 		$this->putVarInt($this->eid); //EntityUniqueID
 		
+		if ($playerProtocol == Info::PROTOCOL_110) {
+			$this->putSignedVarInt($this->gamemode);	// Entity gamemode
+		}
+		
 		$this->putLFloat($this->x); // default position (4)
 		$this->putLFloat($this->y); // (4)
 		$this->putLFloat($this->z); // (4)
