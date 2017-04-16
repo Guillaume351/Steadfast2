@@ -101,9 +101,9 @@ abstract class Entity extends Location implements Metadatable{
 	const DATA_SCALE = 39; // type: float
 	const DATA_BUTTON_TEXT = 40; // type: string !IMPORTANT! Send to player
 	const DATA_MAX_AIR = 44; // type: short
-	const DATA_SEAT_RIDER_OFFSET = 56; // type: vector3
+	const DATA_SEAT_RIDER_OFFSET = 57; // type: vector3
 	
-	const DATA_EXPLODE_TIMER = 55;
+	const DATA_EXPLODE_TIMER = 56;
 	
 	const DATA_SILENT = 4;
 	const DATA_LEAD = 24; //remove
@@ -138,7 +138,7 @@ abstract class Entity extends Location implements Metadatable{
 	const DATA_FLAG_NOT_MOVE = 16;
 	const DATA_FLAG_NO_AI = 16;
 	const DATA_FLAG_SILENT = 17;
-	const DATA_FLAG_WALLCLIMBING = 18;
+	const DATA_FLAG_IS_CLIMBING = 18;
 	const DATA_FLAG_RESTING_BAT = 19;
 	const DATA_FLAG_ANIMAL_SIT = 20;
 	const DATA_FLAG_ANGRY_WOLF = 21;
@@ -154,7 +154,22 @@ abstract class Entity extends Location implements Metadatable{
 	const DATA_FLAG_CHESTED_MOUNT = 31;
 	const DATA_FLAG_STACKABLE = 32; //???
 	
-	public static $entityCount = 1;
+	/* 1.1.0 new flags
+	const DATA_FLAG_CAN_CLIMBING = 19; 
+	const DATA_FLAG_IS_SWIMMER = 20; 
+	const DATA_FLAG_CAN_FLY = 21; 
+	const DATA_FLAG_IS_STAING = 37; 
+	const DATA_FLAG_IS_WASD_CONTROLLED = 43; 
+	const DATA_FLAG_CAN_POWER_JUMP = 44;
+	 */
+	
+	const DATA_PLAYER_FLAG_SLEEP = 1;
+	const DATA_PLAYER_FLAG_DEAD = 2;
+
+	const DATA_PLAYER_FLAGS = 27;
+	const DATA_PLAYER_BED_POSITION = 29;
+	
+	public static $entityCount = 2;
 	/** @var Entity[] */
 	private static $knownEntities = [];
 	private static $shortNames = [];
@@ -384,6 +399,10 @@ abstract class Entity extends Location implements Metadatable{
 
 	public function setSprinting($value = true){
 		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_SPRINTING, (bool) $value);
+	}
+	
+	public function setFlyingFlag($value = true){
+		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_FALL_FLYING, (bool) $value);
 	}
 
 	/**
@@ -619,7 +638,7 @@ abstract class Entity extends Location implements Metadatable{
 	public function sendPotionEffects(Player $player){
 		foreach($this->effects as $effect){
 			$pk = new MobEffectPacket();
-			$pk->eid = 0;
+			$pk->eid = $player->getId();
 			$pk->effectId = $effect->getId();
 			$pk->amplifier = $effect->getAmplifier();
 			$pk->particles = $effect->isVisible();
@@ -905,8 +924,8 @@ abstract class Entity extends Location implements Metadatable{
 			$block->onEntityCollide($this);
 		}
 		
-		if($this->y <= -16 and $this->dead !== true){
-			$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_VOID, 10);
+		if($this->y < 0 && $this->dead !== true){
+			$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_VOID, 20);
 			$this->attack($ev->getFinalDamage(), $ev);
 			$hasUpdate = true;
 		}
@@ -1191,10 +1210,10 @@ abstract class Entity extends Location implements Metadatable{
 	
 	public function isCollideWithTransparent() {
 		$block = $this->level->getBlock(new Vector3(Math::floorFloat($this->x), Math::floorFloat($y = $this->y), Math::floorFloat($this->z)));
-		if(!($block instanceof \pocketmine\block\Ladder) && !($block instanceof \pocketmine\block\Fire)) {
+		if(!($block instanceof \pocketmine\block\Ladder) && !($block instanceof \pocketmine\block\Fire) && !($block instanceof \pocketmine\block\Vine) && !($block instanceof \pocketmine\block\Cobweb)) {
 			$block = $this->level->getBlock(new Vector3(Math::floorFloat($this->x), Math::floorFloat($y = ($this->y + $this->getEyeHeight())), Math::floorFloat($this->z)));
 		}
-		if($block instanceof \pocketmine\block\Ladder || $block instanceof \pocketmine\block\Fire) {			
+		if($block instanceof \pocketmine\block\Ladder || $block instanceof \pocketmine\block\Fire || $block instanceof \pocketmine\block\Vine || $block instanceof \pocketmine\block\Cobweb) {		
 			return $block;
 		}
 		return false;
@@ -1440,24 +1459,22 @@ abstract class Entity extends Location implements Metadatable{
 			}else{
 
 				if($this instanceof Player){
-					if(!$this->onGround or $movY != 0){
-						$bb = clone $this->boundingBox;
-						$bb->maxY = $bb->minY + 0.5;
-						$bb->minY -= 1;
-						if(count($this->level->getCollisionBlocks($bb, true)) > 0){
-							$this->onGround = true;
-						}else{
-							$this->onGround = false;
-						}					
+					$bb = clone $this->boundingBox;
+					$bb->maxY = $bb->minY + 0.5;
+					$bb->minY -= 1;
+					if(count($this->level->getCollisionBlocks($bb, true)) > 0){
+						$this->onGround = true;
+					}else{
+						$this->onGround = false;
+					}					
 //						
-//						$bb = clone $this->boundingBox;
-//						$bb->minY -= 1;
-//						if(count($this->level->getCollisionBlocks($bb)) > 0){
-//							$this->onGround = true;
-//						}else{
-//							$this->onGround = false;
-//						}
-					}
+//					$bb = clone $this->boundingBox;
+//					$bb->minY -= 1;
+//					if(count($this->level->getCollisionBlocks($bb)) > 0){
+//						$this->onGround = true;
+//					}else{
+//						$this->onGround = false;
+//					}
 					$this->isCollided = $this->onGround;
 				}else{
 					$this->isCollidedVertically = $movY != $dy;

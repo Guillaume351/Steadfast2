@@ -28,9 +28,10 @@ use pocketmine\utils\UUID;
 use pocketmine\utils\Binary;
 use pocketmine\network\protocol\Info;
 
-class LoginPacket extends DataPacket {
+class LoginPacket extends PEPacket {
 
 	const NETWORK_ID = Info::LOGIN_PACKET;
+	const PACKET_NAME = "LOGIN_PACKET";
 
 	public $username;
 	public $protocol1;
@@ -46,6 +47,10 @@ class LoginPacket extends DataPacket {
 	public $playerDataLength;
 	public $playerData;
 	public $isValidProtocol = true;
+    public $inventoryType = -1;
+    public $osType = -1;
+    public $xuid = '';
+	public $languageCode = false;
 
 	private function getFromString(&$body, $len) {
 		$res = substr($body, 0, $len);
@@ -53,7 +58,7 @@ class LoginPacket extends DataPacket {
 		return $res;
 	}
 
-	public function decode() {
+	public function decode($playerProtocol) {
 		$acceptedProtocols = Info::ACCEPTED_PROTOCOLS;
 		$this->protocol1 = $this->getInt();
 		if (!in_array($this->protocol1, $acceptedProtocols)) {
@@ -67,7 +72,7 @@ class LoginPacket extends DataPacket {
 
 		$this->playerDataLength = Binary::readLInt($this->getFromString($body, 4));
 		$this->playerData = $this->getFromString($body, $this->playerDataLength);
-
+        
 		$this->chains['data'] = array();
 		$index = 0;
 		foreach ($this->chains['chain'] as $key => $jwt) {
@@ -84,14 +89,26 @@ class LoginPacket extends DataPacket {
 		$this->clientId = $this->chains['data'][$dataIndex]['extraData']['identity'];
 		$this->clientUUID = UUID::fromString($this->chains['data'][$dataIndex]['extraData']['identity']);
 		$this->identityPublicKey = $this->chains['data'][$dataIndex]['identityPublicKey'];
-
+        if (isset($this->chains['data'][$dataIndex]['extraData']['XUID'])) {
+            $this->xuid = $this->chains['data'][$dataIndex]['extraData']['XUID'];
+        }
+        
 		$this->serverAddress = $this->playerData['ServerAddress'];
 		$this->skinName = $this->playerData['SkinId'];
 		$this->skin = base64_decode($this->playerData['SkinData']);
 		$this->clientSecret = $this->playerData['ClientRandomId'];
+        if (isset($this->playerData['DeviceOS'])) {
+            $this->osType = $this->playerData['DeviceOS'];    
+        }
+        if (isset($this->playerData['UIProfile'])) {
+            $this->inventoryType = $this->playerData['UIProfile'];
+        }
+		 if (isset($this->playerData['LanguageCode'])) {
+            $this->languageCode = $this->playerData['LanguageCode'];
+        }
 	}
 
-	public function encode() {
+	public function encode($playerProtocol) {
 		
 	}
 

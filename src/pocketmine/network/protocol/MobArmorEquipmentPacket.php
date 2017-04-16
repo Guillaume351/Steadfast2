@@ -24,27 +24,28 @@ namespace pocketmine\network\protocol;
 #include <rules/DataPacket.h>
 
 
-class MobArmorEquipmentPacket extends DataPacket{
+class MobArmorEquipmentPacket extends PEPacket{
 	const NETWORK_ID = Info::MOB_ARMOR_EQUIPMENT_PACKET;
+	const PACKET_NAME = "MOB_ARMOR_EQUIPMENT_PACKET";
 
 	public $eid;
 	public $slots = [];
 
-	public function decode(){
+	public function decode($playerProtocol){
 		$this->eid = $this->getVarInt();
-		$this->slots[0] = $this->getSlot();
-		$this->slots[1] = $this->getSlot();
-		$this->slots[2] = $this->getSlot();
-		$this->slots[3] = $this->getSlot();
+		$this->slots[0] = $this->getSlot($playerProtocol);
+		$this->slots[1] = $this->getSlot($playerProtocol);
+		$this->slots[2] = $this->getSlot($playerProtocol);
+		$this->slots[3] = $this->getSlot($playerProtocol);
 	}
 
-	public function encode(){
-		$this->reset();
+	public function encode($playerProtocol){
+		$this->reset($playerProtocol);
 		$this->putVarInt($this->eid);
-		$this->putSlot($this->slots[0]);
-		$this->putSlot($this->slots[1]);
-		$this->putSlot($this->slots[2]);
-		$this->putSlot($this->slots[3]);
+		$this->putSlot($this->slots[0], $playerProtocol);
+		$this->putSlot($this->slots[1], $playerProtocol);
+		$this->putSlot($this->slots[2], $playerProtocol);
+		$this->putSlot($this->slots[3], $playerProtocol);
 	}
 
 }

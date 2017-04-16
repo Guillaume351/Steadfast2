@@ -22,6 +22,10 @@ class ConnectPacket extends ProxyPacket {
 	public $ip;
 	public $port;
 	public $isValidProtocol = true;
+    public $deviceOSType = -1;
+    public $inventoryType = -1;
+	public $XUID = "";
+	
 
 	public function decode() {
 		$this->identifier = $this->getString();
@@ -41,6 +45,9 @@ class ConnectPacket extends ProxyPacket {
 		$this->ip = $this->getString();
 		$this->port = $this->getInt();
 		$this->isFirst = (bool) @$this->getByte();
+        $this->deviceOSType = $this->getInt();
+        $this->inventoryType = $this->getInt();
+		$this->XUID = $this->getString();
 	}
 
 	public function encode() {

@@ -225,6 +225,7 @@ class Item{
 	const CAULDRON_BLOCK = 118;
 	const END_PORTAL = 120;
 	const END_STONE = 121;
+	const DRAGON_EGG = 122;
 	const REDSTONE_LAMP = 123;
 	const REDSTONE_LAMP_ACTIVE = 124;
 	const DROPPER = 125;
@@ -232,6 +233,7 @@ class Item{
 	const COCOA = 127;
 	const SANDSTONE_STAIRS = 128;
 	const EMERALD_ORE = 129;
+	const ENDER_CHEST = 130;
 	const TRIPWIRE_HOOK = 131;
 	const TRIPWIRE = 132;
 	const EMERALD_BLOCK = 133;
@@ -271,6 +273,7 @@ class Item{
 	const WOODEN_SLABS = 158;
 	const STAINED_CLAY = 159;
 	const STAINED_HARDENED_CLAY = 159;
+	const STAINED_GLASS_PANE = 160;
 	const LEAVES2 = 161;
 	const LEAVE2 = 161;
 	const WOOD2 = 162;
@@ -305,6 +308,12 @@ class Item{
 	const DARK_OAK_DOOR_BLOCK = 197;
 	const GRASS_PATH = 198;
 	const ITEM_FRAME_BLOCK = 199;
+	const CHORUS_FLOWER = 200;
+	const PURPUR_BLOCK = 201;
+	const END_BRICKS = 206;
+	const END_ROD = 208;
+	const CHORUS_PLANT = 240;
+	const STAINED_GLASS = 241;
 	const PODZOL = 243;
 	const BEETROOT_BLOCK = 244;
 	const STONECUTTER = 245;
@@ -447,6 +456,7 @@ class Item{
 	const MAGMA_CREAM = 378;
 	const BREWING_STAND = 379;
 	const CAULDRON = 380;
+	const EYE_OF_ENDER = 381;
 	const GLISTERING_MELON = 382;
 	const SPAWN_EGG = 383;
 	const BOTTLE_ENCHANTING = 384;
@@ -485,14 +495,22 @@ class Item{
 	const DIAMOND_HORSE_ARMOR = 419;
 	const LEAD = 420;
 	const NAME_TAG = 421;
+	const PRISMARINE_CRYSTAL = 422;
 	const RAW_MUTTON = 423;
 	const COOKED_MUTTON = 424;
+	const END_CRYSTAL = 426;
 	const SPRUCE_DOOR = 427;
 	const BIRCH_DOOR = 428;
 	const JUNGLE_DOOR = 429;
 	const ACACIA_DOOR = 430;
 	const DARK_OAK_DOOR = 431;
+	const CHORUS_FRUIT = 432;
+	const POPPED_CHORUS_FRUIT = 433;
+	const DRAGONS_BREATH = 437;
 	const SPLASH_POTION = 438;
+	const LINGERING_POTION = 441;
+	const ELYTRA = 444;
+	const SHULKER_SHELL = 445;
 	const BEETROOT = 457;
 	const BEETROOT_SEEDS = 458;
 	const BEETROOT_SEED = 458;
@@ -502,6 +520,7 @@ class Item{
 	const PUFFERFISH = 462;
 	const COOKED_SALMON = 463;
 	const ENCHANTED_GOLDEN_APPLE = 466;
+	const END_PEARL = 468;
 	const CAMERA = 498;
 	
 	protected static $names = [
@@ -568,6 +587,8 @@ class Item{
 		71 => "Iron Door",
 		73 => "Redstone Ore",
 		74 => "Glowing Redstone Ore",
+		75 => "Redstone Torch",
+		76 => "Glowing Redstone Torch",
 		78 => "Snow",
 		79 => "Ice",
 		80 => "Snow Block",
@@ -604,6 +625,7 @@ class Item{
 		118 => "Cauldron Block",
 		120 => "End Portal",
 		121 => "End Stone",
+        self::DRAGON_EGG => 'Dragon Egg',
 		123 => "Redstone Lamp",
 		124 => "Redstone Lamp Active",
 		125 => "Dropper",
@@ -611,6 +633,7 @@ class Item{
 		127 => "Cocoa",
 		128 => "Sendstone Stairs",
 		129 => "Emerald Ore",
+        self::ENDER_CHEST => 'Ender Chest',
 		131 => "Tripwire Hook",
 		132 => "Tripwire",
 		133 => "Emerald Block",
@@ -638,6 +661,7 @@ class Item{
 		157 => "Double Wood Slab",
 		158 => "Wooden Slab",
 		159 => "Stained Clay",
+        self::STAINED_GLASS_PANE => 'Stained Glass Pane',
 		161 => "Leaves2",
 		162 => "Wood2",
 		163 => "Acacia Wood Stairs",
@@ -665,6 +689,12 @@ class Item{
 		196 => "Acacia Door",
 		197 => "Dark Oak Door",
 		198 => "Grass Path",
+        self::CHORUS_FLOWER => 'Chorus Flower',
+        self::PURPUR_BLOCK => 'Purpur Block',
+        self::END_BRICKS => 'End Brick',
+        self::END_ROD => 'End Rod',
+        self::CHORUS_PLANT => 'Chorus Plant',
+        self::STAINED_GLASS => 'Stained Glass',
 		243 => "Podzol",
 		244 => "Beetroot Block",
 		245 => "Stonecutter",
@@ -806,6 +836,7 @@ class Item{
 		419 => "Diamond Horse Armor",
 		420 => "Lead",
 		421 => "Name Tag",
+		self::PRISMARINE_CRYSTAL => "Prismarine Crystal",
 		423 => "Raw Mutton",
 		424 => "Cooked Mutton",
 		427 => "Spruce Door",
@@ -813,6 +844,7 @@ class Item{
 		429 => "Jungle Door",
 		430 => "Acacia Door",
 		431 => "Dark Oak Door",
+		431 => "Chorus Fruit",
 		438 => "Splash Potion",
 		457 => "Beetroot",
 		458 => "Beetroot Seed",
@@ -926,6 +958,11 @@ class Item{
 			self::$list[self::MOB_HEAD] = MobHead::class;
 			self::$list[self::BLAZE_POWDER] = BlazePowder::class;
 			self::$list[self::FLOWER_POT] = FlowerPot::class;
+			self::$list[self::ELYTRA] = Elytra::class;
+			self::$list[self::PRISMARINE_CRYSTAL] = PrismarineCrystal::class;
+            
+            // update for 1.0
+			self::$list[self::CHORUS_FRUIT] = ChorusFruit::class;
 
 			for($i = 0; $i < 256; ++$i){
 				if(Block::$list[$i] !== null){
@@ -1290,7 +1327,18 @@ class Item{
 		self::addCreativeItem(Item::get(Item::DYE, 10));
 		self::addCreativeItem(Item::get(Item::DYE, 9));
 		self::addCreativeItem(Item::get(Item::DYE, 8));
-		
+        
+        // update for 1.0
+        self::addCreativeItem(Item::get(Item::CHORUS_FLOWER, 0));
+        self::addCreativeItem(Item::get(Item::CHORUS_PLANT, 0));
+        self::addCreativeItem(Item::get(Item::ENDER_CHEST, 0));
+        self::addCreativeItem(Item::get(Item::END_BRICKS, 0));
+        self::addCreativeItem(Item::get(Item::END_ROD, 0));
+        self::addCreativeItem(Item::get(Item::PURPUR_BLOCK, 0));
+        
+		self::addCreativeItem(Item::get(Item::REDSTONE_LAMP, 0));
+		self::addCreativeItem(Item::get(Item::REDSTONE_LAMP_ACTIVE, 0));
+		self::addCreativeItem(Item::get(Item::PRISMARINE_CRYSTAL, 0));
 	}
 	
 	private static function initFood(){
@@ -1319,6 +1367,7 @@ class Item{
 		self::$food[] = Item::RAW_SALMON;
 		self::$food[] = Item::COOKED_SALMON;
 		self::$food[] = Item::RABBIT_STEW;
+		self::$food[] = Item::CHORUS_FRUIT;
 	}
 
 	public static function clearCreativeItems(){

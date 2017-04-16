@@ -413,8 +413,10 @@ abstract class BaseInventory implements Inventory{
 		unset($this->viewers[spl_object_hash($who)]);
 	}
 
-	public function onSlotChange($index, $before){
-		$this->sendSlot($index, $this->getViewers());
+	public function onSlotChange($index, $before, $sendPacket = true){
+        if ($sendPacket) {
+            $this->sendSlot($index, $this->getViewers());
+        }
 	}
 
 
@@ -427,9 +429,9 @@ abstract class BaseInventory implements Inventory{
 		}
 
 		$pk = new ContainerSetContentPacket();
-		$pk->slots = [];
+		$slots = [];
 		for($i = 0; $i < $this->getSize(); ++$i){
-			$pk->slots[$i] = $this->getItem($i);
+			$slots[$i] = $this->getItem($i);
 		}
 
 		foreach($target as $player){
@@ -437,7 +439,10 @@ abstract class BaseInventory implements Inventory{
 				$this->close($player);
 				continue;
 			}
+			$pk = new ContainerSetContentPacket();			
 			$pk->windowid = $id;
+			$pk->slots = $slots;
+			$pk->eid = $player->getId();
 			$player->dataPacket($pk);
 		}
 	}
