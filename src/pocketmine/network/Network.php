@@ -41,6 +41,7 @@ use pocketmine\network\protocol\DataPacket;
 use pocketmine\network\protocol\DropItemPacket;
 use pocketmine\network\protocol\FullChunkDataPacket;
 use pocketmine\network\protocol\Info;
+use pocketmine\network\protocol\MapInfoRequestPacket;
 use pocketmine\network\protocol\SetEntityLinkPacket;
 use pocketmine\network\protocol\TileEntityDataPacket;
 use pocketmine\network\protocol\EntityEventPacket;
@@ -257,6 +258,7 @@ class Network {
 			case Info::PROTOCOL_274:
 			case Info::PROTOCOL_280:
 			case Info::PROTOCOL_282:
+			case Info::PROTOCOL_290:
 				$class = $this->packetPool120[$id];
 				break;
 			default:
@@ -271,6 +273,7 @@ class Network {
 	
 	public static function getChunkPacketProtocol($playerProtocol){
 		switch ($playerProtocol) {
+			case Info::PROTOCOL_290:
 			case Info::PROTOCOL_282:
 			case Info::PROTOCOL_280:
 				return Info::PROTOCOL_280;
@@ -429,6 +432,7 @@ class Network {
 		$this->registerPacket120(ProtocolInfo120::RESOURCE_PACKS_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::class);
 		$this->registerPacket120(ProtocolInfo120::RESOURCE_PACK_CHUNK_REQUEST_PACKET, ResourcePackChunkRequestPacket::class);
 		$this->registerPacket120(ProtocolInfo120::PLAYER_INPUT_PACKET, PlayerInputPacket::class);
+		$this->registerPacket120(ProtocolInfo120::MAP_INFO_REQUEST_PACKET, MapInfoRequestPacket::class);
 		// new
 		$this->registerPacket120(ProtocolInfo120::INVENTORY_TRANSACTION_PACKET, InventoryTransactionPacket::class);
 		$this->registerPacket120(ProtocolInfo120::INVENTORY_CONTENT_PACKET, InventoryContentPacket::class);
