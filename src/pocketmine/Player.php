@@ -77,7 +77,7 @@ use pocketmine\inventory\PlayerInventory;
 use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\inventory\SimpleTransactionGroup;
-
+use pocketmine\inventory\transactions\SimpleTransactionData;
 use pocketmine\item\Item;
 use pocketmine\item\Armor;
 use pocketmine\item\Tool;
@@ -382,8 +382,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	protected $beforeSpawnViewRadius = null;
 	protected $beforeSpawnTeleportPosition = null;
 	
+<<<<<<< HEAD
 //	public $hackForCraftLastIndex = 0;
 	
+=======
+>>>>>>> pr/90
 	protected $lastInteractTick = 0;
 	
 	private $lastInteractCoordsHash = -1;
@@ -399,6 +402,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	protected $commandPermissions = AdventureSettingsPacket::COMMAND_PERMISSION_LEVEL_ANY;
 	protected $isTransfered = false;
 	protected $loginCompleted = false;
+<<<<<<< HEAD
+=======
+	protected $titleData = [];
+>>>>>>> pr/90
 
 	public function getLeaveMessage(){
 		return "";
@@ -1562,8 +1569,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$noteId = array_shift($this->noteSoundQueue);
 			$this->sendNoteSound($noteId);
 		}
+<<<<<<< HEAD
 //		$this->hackForCraftLastIndex = 0;
 		
+=======
+>>>>>>> pr/90
 		
 		foreach ($this->lastEntityRemove as $eid => $tick) {
 			if ($tick + 20 < $this->lastUpdate) {
@@ -1572,6 +1582,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					$this->sendEntityPackets($this->entitiesPacketsQueue[$eid]);
 					unset($this->entitiesPacketsQueue[$eid]);
 				}
+			}
+		}
+		
+		if (!empty($this->titleData)) {
+			$this->titleData['holdTickCount']--;
+			if ($this->titleData['holdTickCount'] <= 0) {
+				$this->sendTitle($this->titleData['text'], $this->titleData['subtext'], $this->titleData['time']);
+				$this->titleData = [];
 			}
 		}
 
@@ -1672,14 +1690,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				case Item::MUSHROOM_STEW:
 				case Item::RABBIT_STEW:
 					$this->inventory->addItem(Item::get(Item::BOWL, 0, 1));
-					break;
-				case Item::RAW_FISH:
-					if ($slot->getDamage() === 3) { //Pufferfish
-						$this->addEffect(Effect::getEffect(Effect::HUNGER)->setAmplifier(2)->setDuration(15 * 20));
-						//$this->addEffect(Effect::getEffect(Effect::NAUSEA)->setAmplifier(1)->setDuration(15 * 20));
-						$this->addEffect(Effect::getEffect(Effect::POISON)->setAmplifier(3)->setDuration(60 * 20));
-					}
-					break;
+					break;				
 				case Item::GOLDEN_APPLE:
 					$this->addEffect(Effect::getEffect(Effect::REGENERATION)->setAmplifier(1)->setDuration(5 * 20));
 //						$this->addEffect(Effect::getEffect(Effect::ABSORPTION)->setAmplifier(0)->setDuration(120 * 20));
@@ -1881,7 +1892,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						//Timings::$timerMobEqipmentPacket->stopTiming();
 						break;
 					}								
-				}elseif($item === null or $slot === -1 or !$item->deepEquals($packet->item)){ // packet error or not implemented
+				}elseif($item === null || $slot === -1 || ($item->getId() != Item::FILLED_MAP && !$item->deepEquals($packet->item) || !$item->deepEquals($packet->item, true, false))){ // packet error or not implemented
+					// hack for map was added because type of map_uuid is different in various versions
 					$this->inventory->sendContents($this);
 					//Timings::$timerMobEqipmentPacket->stopTiming();
 					break;
@@ -2244,8 +2256,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				}
 				
 				if ($this->protocol >= ProtocolInfo::PROTOCOL_120) {
-					$craftSlots = $this->inventory->getCraftContents();
 					try {
+						$scale = floor($packet->output[0]->getCount() / $recipe->getResult()->getCount());
+						if ($scale > 1) {
+							$recipe = clone $recipe;
+							$recipe->scale($scale);
+						}
+						$craftSlots = $this->inventory->getCraftContents();
 						$this->tryApplyCraft($craftSlots, $recipe);
 						$this->inventory->setItem(PlayerInventory120::CRAFT_RESULT_INDEX, $recipe->getResult());
 						foreach ($craftSlots as $slot => $item) {
@@ -3858,6 +3875,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
     }
 	
 	public function setTitle($text, $subtext = '', $time = 36000) {		
+		if ($this->protocol >= Info::PROTOCOL_290) { //hack for 1.7.x
+			$this->clearTitle();
+			$this->titleData = ['text' => $text, 'subtext' => $subtext, 'time' => $time, 'holdTickCount' => 5];
+		} else {
+			$this->sendTitle($text, $subtext, $time);
+		}
+		
+	}
+	
+	protected function sendTitle($text, $subtext = '', $time = 36000) {		
 		$pk = new SetTitlePacket();
 		$pk->type = SetTitlePacket::TITLE_TYPE_TIMES;
 		$pk->text = "";
@@ -3865,14 +3892,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->fadeOutTime = 5;
 		$pk->stayTime = $time;
 		$this->dataPacket($pk);
-
-		if (!empty($subtext)) {
+		
+		if (!empty($subtext)) {			
 			$pk = new SetTitlePacket();
 			$pk->type = SetTitlePacket::TITLE_TYPE_SUBTITLE;
 			$pk->text = $subtext;
-			$this->dataPacket($pk);
+			$this->dataPacket($pk);	
 		}
-
+		
 		$pk = new SetTitlePacket();
 		$pk->type = SetTitlePacket::TITLE_TYPE_TITLE;
 		$pk->text = $text;
@@ -3881,8 +3908,26 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	public function clearTitle() {
 		$pk = new SetTitlePacket();
+		$pk->type = SetTitlePacket::TITLE_TYPE_TIMES;
+		$pk->text = "";
+		$pk->fadeInTime = 0;
+		$pk->fadeOutTime = 0;
+		$pk->stayTime = 0;
+		$this->dataPacket($pk);
+		
+		$pk = new SetTitlePacket();
 		$pk->type = SetTitlePacket::TITLE_TYPE_CLEAR;
 		$pk->text = "";
+		$this->dataPacket($pk);
+	}
+
+	public function setActionBar($text, $time = 36000){
+		$pk = new SetTitlePacket();
+		$pk->type = SetTitlePacket::TITLE_TYPE_ACTION_BAR;
+		$pk->text = $text;
+		$pk->stayTime = $time;
+		$pk->fadeInTime = 1;
+		$pk->fadeOutTime = 1;
 		$this->dataPacket($pk);
 	}
 		
@@ -4246,6 +4291,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$trGroup->sendInventories();
 				return;
 			}
+//			echo " ---------- " . $transaction . PHP_EOL;
 			$trGroup->addTransaction($transaction);
 		}
 		try {
