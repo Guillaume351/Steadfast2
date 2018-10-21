@@ -174,6 +174,8 @@ use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\network\protocol\v120\SubClientLoginPacket;
 use pocketmine\tile\SignEntity;
 use pocketmine\utils\Binary;
+use pocketmine\network\protocol\v310\NetworkChunkPublisherUpdatePacket;
+use pocketmine\network\multiversion\Entity as MultiversionEntity;
 
 /**
  * Main class that handles networking, recovery, and packet sending to the server part
@@ -910,6 +912,15 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->unloadChunk($X, $Z);
 		}
 		$this->loadQueue = $newOrder;
+		
+		if($this->protocol >= ProtocolInfo::PROTOCOL_310 && $this->spawned && !empty($newOrder)){
+			$pk = new NetworkChunkPublisherUpdatePacket();
+			$pk->x = $this->getFloorX();
+			$pk->y = $this->getFloorY();
+			$pk->z = $this->getFloorZ();
+			$pk->radius = $this->viewRadius << 4; 
+			$this->dataPacket($pk);
+		}
 		return true;
 	}
 
@@ -2128,7 +2139,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						break;
 					case EntityEventPacket::FEED:
 						$position = [ 'x' => $this->x, 'y' => $this->y, 'z' => $this->z ];
-						$this->sendSound(LevelSoundEventPacket::SOUND_EAT, $position, 63);
+						$this->sendSound(LevelSoundEventPacket::SOUND_EAT, $position);
 						break;
 				}
 				//Timings::$timerEntityEventPacket->stopTiming();
@@ -2612,15 +2623,15 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}
 						break;
 					case InventoryTransactionPacket::TRANSACTION_TYPE_ITEM_USE:
-						switch ($packet->actionType) {
-							case InventoryTransactionPacket::ITEM_USE_ACTION_PLACE:
-							case InventoryTransactionPacket::ITEM_USE_ACTION_USE:
-								$blockHash = $this->level->blockHash($packet->position['x'], $packet->position['y'], $packet->position['z']);
+						switch ($packet->actionType) {		
+							case InventoryTransactionPacket::ITEM_USE_ACTION_PLACE:												
+								$blockHash = $packet->position['x'] . ':' . $packet->position['y'] . ':' . $packet->position['z']. ':' . $packet->face;
 								if ($this->lastUpdate - $this->lastInteractTick < 3 && $this->lastInteractCoordsHash == $blockHash) {
 									break;
 								}
 								$this->lastInteractTick = $this->lastUpdate;
 								$this->lastInteractCoordsHash = $blockHash;
+							case InventoryTransactionPacket::ITEM_USE_ACTION_USE:
 								$this->useItem($packet->item, $packet->slot, $packet->face, $packet->position, $packet->clickPosition);
 								break;
 							case InventoryTransactionPacket::ITEM_USE_ACTION_DESTROY:
@@ -4454,7 +4465,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$pk->z = $packet->z;
 			$pk->data = $block->getId() | ($block->getDamage() << 8);
 			Server::broadcastPacket($recipients, $pk);
-			$this->sendSound(LevelSoundEventPacket::SOUND_HIT, $blockPos, 1, $block->getId(), $recipients);
+			$this->sendSound(LevelSoundEventPacket::SOUND_HIT, $blockPos, MultiversionEntity::ID_NONE, $block->getId(), $recipients);
 		}
 	}
 	
@@ -4478,7 +4489,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 * @param integer $soundId
 	 * @param float[] $position
 	 */
-	public function sendSound($soundId, $position, $entityType = 1, $blockId = -1, $targets = []) {
+	public function sendSound($soundId, $position, $entityType = MultiversionEntity::ID_NONE, $blockId = -1, $targets = []) {
 		$pk = new LevelSoundEventPacket();
 		$pk->eventId = $soundId;
 		$pk->x = $position['x'];
