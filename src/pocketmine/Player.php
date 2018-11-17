@@ -362,6 +362,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	
 	/** @var CustomUI[] */
 	protected $activeModalWindows = [];
+	/** @var integer */
+	protected $lastShowModalTick = 0;
 	
 	protected $isTeleporting = false;
 	/** @var Player[] */
@@ -1353,8 +1355,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			if(!$entity->isAlive()){
 				continue;
 			}
-
-			if($entity instanceof Arrow and $entity->hadCollision){
+			
+			if($entity instanceof Arrow && $entity->hadCollision){
 				$item = Item::get(Item::ARROW, 0, 1);
 				if($this->isSurvival() and !$this->inventory->canAddItem($item)){
 					continue;
@@ -1371,7 +1373,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				Server::broadcastPacket($entity->getViewers(), $pk);
 
 				$this->inventory->addItem(clone $item);
-				$entity->kill();
+				$entity->close();
 			}elseif($entity instanceof DroppedItem){
 				if($entity->getPickupDelay() <= 0){
 					$item = $entity->getItem();
@@ -4651,7 +4653,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$pk->formId = $this->lastModalId++;
 			$pk->data = $modalWindow->toJSON();
 			$this->dataPacket($pk);
-			$this->activeModalWindows[$pk->formId] = $modalWindow; 
+			$this->activeModalWindows[$pk->formId] = $modalWindow;
 			return true;
 		}
 		return false;
@@ -4663,6 +4665,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 * @return boolean
 	 */
 	protected function isNeedTosendModal($window) {
+		if ($this->lastUpdate - $this->lastShowModalTick > 60) {
+			$this->activeModalWindows = [];
+			$this->lastShowModalTick = $this->lastUpdate;
+			return true;
+		}
 		if (!empty($this->activeModalWindows)) {
 			$windowData = $window->toJSON();
 			foreach ($this->activeModalWindows as $formId => $form) {
