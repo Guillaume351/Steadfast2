@@ -174,11 +174,7 @@ class ShapedRecipe implements Recipe {
 	public function registerToCraftingManager() {
 		Server::getInstance()->getCraftingManager()->registerShapedRecipe($this);
 	}
-<<<<<<< HEAD
-	
-=======
 
->>>>>>> pr/90
 	public function __toString() {
 		$result = "";
 		foreach ($this->ingredients as $index => $items) {
@@ -189,9 +185,6 @@ class ShapedRecipe implements Recipe {
 		}
 		return $result;
 	}
-<<<<<<< HEAD
-}
-=======
 
 	public function scale($scale) {
 		if ($scale <= 0) {
@@ -208,4 +201,3 @@ class ShapedRecipe implements Recipe {
 	}
 
 }
->>>>>>> pr/90

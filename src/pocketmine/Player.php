@@ -386,11 +386,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	protected $beforeSpawnViewRadius = null;
 	protected $beforeSpawnTeleportPosition = null;
 	
-<<<<<<< HEAD
-//	public $hackForCraftLastIndex = 0;
-	
-=======
->>>>>>> pr/90
 	protected $lastInteractTick = 0;
 	
 	private $lastInteractCoordsHash = -1;
@@ -406,10 +401,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	protected $commandPermissions = AdventureSettingsPacket::COMMAND_PERMISSION_LEVEL_ANY;
 	protected $isTransfered = false;
 	protected $loginCompleted = false;
-<<<<<<< HEAD
-=======
 	protected $titleData = [];
->>>>>>> pr/90
 
 	public function getLeaveMessage(){
 		return "";
@@ -1583,11 +1575,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$noteId = array_shift($this->noteSoundQueue);
 			$this->sendNoteSound($noteId);
 		}
-<<<<<<< HEAD
-//		$this->hackForCraftLastIndex = 0;
-		
-=======
->>>>>>> pr/90
 		
 		foreach ($this->lastEntityRemove as $eid => $tick) {
 			if ($tick + 20 < $this->lastUpdate) {
@@ -3426,8 +3413,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
             return;
         }
 
-
-        if (!$this->server->isWhitelisted(strtolower($this->getName()))) {
+		if (!$this->server->isWhitelisted(strtolower($this->getName()))) {
 			$this->close(TextFormat::YELLOW . $this->username . " has left the game", "Server is private.");
 			return;
 		} elseif ($this->server->getNameBans()->isBanned(strtolower($this->getName())) or $this->server->getIPBans()->isBanned($this->getAddress())) {
@@ -3720,10 +3706,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->movementSpeed = $value;
 		$this->updateAttribute(UpdateAttributesPacket::SPEED, $this->movementSpeed, 0, self::MAXIMUM_SPEED, $this->movementSpeed);
 	}
-
-    public function setImmobile($value = true) {
-        $this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_NOT_MOVE, $value);
-    }
 
 	public function setSprinting($value = true, $setDefault = false) {
 		if(!$setDefault) {
@@ -4106,6 +4088,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 		}
 	}
+
+    public function setImmobile($value = true) {
+        $this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_NOT_MOVE, $value);
+    }
 	
 	protected function useItem($item, $slot, $face, $blockPosition, $clickPosition) {
 		switch ($face) {

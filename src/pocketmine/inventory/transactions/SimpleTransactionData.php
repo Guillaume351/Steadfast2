@@ -112,12 +112,6 @@ class SimpleTransactionData {
 					case self::ACTION_CRAFT_GET_RESULT:
 						$slot = PlayerInventory120::CRAFT_RESULT_INDEX;
 						break;
-<<<<<<< HEAD
-//					case self::ACTION_CRAFT_USE:
-//						if ($this->slot == 0) {
-//							$this->slot = $player->hackForCraftLastIndex++;
-//						}
-=======
 					// client send slot 0 for all craft transactions by quick craft, so we need manage it manually
 					case self::ACTION_CRAFT_USE:
 						if ($this->slot == 0) {
@@ -127,7 +121,6 @@ class SimpleTransactionData {
 							}
 							break;
 						}
->>>>>>> pr/90
 					default:						
 						$slot = PlayerInventory120::CRAFT_INDEX_0 - $this->slot;
 						break;
