@@ -2,7 +2,7 @@
 
 namespace pocketmine\network\protocol;
 
-interface Info310 {
+interface Info331 {
 	const LOGIN_PACKET = 0x01;
 	const PLAY_STATUS_PACKET = 0x02;
 	const SERVER_TO_CLIENT_HANDSHAKE_PACKET = 0x03;
@@ -120,6 +120,7 @@ interface Info310 {
 	const SCRIPT_CUSTOM_EVENT_PACKET = 0x75;
 	const SPAWN_PARTICLE_EFFECT_PACKET = 0x76;
 	const AVAILABLE_ENTITY_IDENTIFIERS_PACKET = 0x77;
-	const LEVEL_SOUND_EVENT_PACKET = 0x78;
 	const NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET = 0x79;
+	const BIOME_DEFINITION_LIST_PACKET = 0x7a;
+	const LEVEL_SOUND_EVENT_PACKET = 0x7b;
 }

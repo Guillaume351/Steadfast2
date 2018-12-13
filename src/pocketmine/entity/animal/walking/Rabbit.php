@@ -22,10 +22,9 @@ class Rabbit extends WalkingAnimal{
 	}
 
 	public function initEntity(){
-	//	parent::initEntity();
-	//	$this->setMaxHealth(3);
-        $this->kill();
-        print_r("Rabbit killed\n");
+		parent::initEntity();
+
+		$this->setMaxHealth(3);
 	}
 
 	public function targetOption(Creature $creature, float $distance){
