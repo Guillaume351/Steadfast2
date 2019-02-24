@@ -148,6 +148,7 @@ use pocketmine\entity\projectile\FireBall;
 use pocketmine\utils\MetadataConvertor;
 use pocketmine\event\server\SendRecipiesList;
 use pocketmine\network\protocol\PEPacket;
+use pocketmine\tile\Beacon;
 
 /**
  * The class that manages everything
@@ -2325,7 +2326,7 @@ class Server{
 				}elseif($recipe instanceof FurnaceRecipe) {
 					$pk->addFurnaceRecipe($recipe);
 				}
-			}		
+			}
 			
 			$pk->encode($p->getPlayerProtocol(), $p->getSubClientId());
 			$bpk = new BatchPacket();
@@ -2554,6 +2555,7 @@ class Server{
 		Tile::registerTile(Bed::class);
 		Tile::registerTile(Cauldron::class);
 		Tile::registerTile(ItemFrame::class);
+		Tile::registerTile(Beacon::class);
 	}
 
 	public function shufflePlayers(){

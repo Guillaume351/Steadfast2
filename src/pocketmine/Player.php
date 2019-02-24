@@ -413,6 +413,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	protected $scoreboard = null;
 	protected $commandsData = [];
 	protected $joinCompleted = false;
+	protected $platformChatId = "";
 
 	public function getLeaveMessage(){
 		return "";
@@ -1072,7 +1073,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if($this->connected === false){
 			return false;
 		}
-		
+
 		if ($this->subClientId > 0 && $this->parent != null) {
 			$packet->senderSubClientID = $this->subClientId;
 			return $this->parent->dataPacket($packet);
@@ -1786,6 +1787,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->originalProtocol = $packet->originalProtocol;
 					
 				$this->identityPublicKey = $packet->identityPublicKey;
+				$this->platformChatId = $packet->platformChatId;
 				$this->processLogin();
 				//Timings::$timerLoginPacket->stopTiming();
 				break;
@@ -2912,6 +2914,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->level->freeChunk($x, $z, $this);
 			unset($this->usedChunks[$index]);
 			unset($this->loadQueue[$index]);
+			foreach($this->level->getChunkEntities($x, $z) as $entity){
+				if($entity !== $this){
+					$entity->despawnFrom($this);
+				}
+			}
 		}
 	}
 
@@ -5081,6 +5088,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->serverAddress = $parent->serverAddress;
 		$this->clientVersion = $parent->clientVersion;
 		$this->originalProtocol = $parent->originalProtocol;
+		$this->platformChatId = $parent->platformChatId;
 
 		$this->identityPublicKey = $packet->identityPublicKey;
 		
@@ -5213,7 +5221,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->dataPacket($packet);
 	}
 	
-	
+	 
 	protected function changeHeldItem($item, $selectedSlot, $slot) {
 		$hotbarItem = $this->inventory->getHotbatSlotItem($selectedSlot);
 		$isNeedSendToHolder = !($hotbarItem->deepEquals($item));
