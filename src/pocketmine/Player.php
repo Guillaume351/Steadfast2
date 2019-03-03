@@ -3394,6 +3394,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->server->getPluginManager()->subscribeToPermission(Server::BROADCAST_CHANNEL_ADMINISTRATIVE, $this);
 		}
 
+        $this->server->getPluginManager()->callEvent($ev = new PlayerPreLoginEvent($this, "Plugin reason"));
+        if ($ev->isCancelled()) {
+            $this->close("", $ev->getKickMessage());
+            return;
+        }
+
 		foreach ($this->server->getOnlinePlayers() as $p) {
 			if ($p !== $this and strtolower($p->getName()) === strtolower($this->getName())) {
 				if ($this->xuid !== '') {
@@ -3405,13 +3411,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 		}
 		
-		
-		$this->server->getPluginManager()->callEvent($ev = new PlayerPreLoginEvent($this, "Plugin reason"));
-		if ($ev->isCancelled()) {
-			$this->close("", $ev->getKickMessage());
-			return;
-		}
-
 		$nbt = $this->server->getOfflinePlayerData($this->username);
 		if (!isset($nbt->NameTag)) {
 			$nbt->NameTag = new StringTag("NameTag", $this->username);
