@@ -33,10 +33,7 @@
             {
                 "description": "Gets the version of this server",
                 "permission": "any",
-                "aliases": [
-                    "ver",
-                    "about"
-                ],
+                "aliases": [],
                 "overloads": {
                     "byPass": {
                         "input": {
@@ -112,29 +109,6 @@
                 }
             }
         ]
-    },
-  "tell": {
-    "versions": [
-      {
-        "description": "Send private messages",
-        "permission": "any",
+    }
 
-        "overloads": {
-          "default": {
-            "input": {
-              "parameters": [
-                {
-                  "name": "Name Message",
-                  "type": "rawtext"
-                }
-              ]
-            },
-            "output": {
-              "parameters": []
-            }
-          }
-        }
-      }
-    ]
-  }
 }
