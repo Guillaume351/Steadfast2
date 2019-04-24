@@ -21,6 +21,9 @@ class LevelSoundEventPacket extends PEPacket {
 	const SOUND_NOTE = 'SOUND_NOTE';
 	const SOUND_BOW = 'SOUND_BOW';
 	const SOUND_UNDEFINED = 'SOUND_UNDEFINED';
+	const SOUND_LAND = 'SOUND_LAND';
+	const SOUND_SPAWN = 'SOUND_SPAWN';
+	const SOUND_FUSE = 'SOUND_FUSE';
 
 	public $eventId;
 	public $x;
