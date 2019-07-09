@@ -23,7 +23,6 @@ namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
-use pocketmine\network\protocol\Info;
 use pocketmine\Server;
 use pocketmine\utils\Binary;
 use pocketmine\utils\JWT;
@@ -82,9 +81,6 @@ class LoginPacket extends PEPacket {
 		if (!in_array($this->protocol1, $acceptedProtocols)) {
 			$this->isValidProtocol = false;
 			return;
-		}
-		if ($this->protocol1 < Info::PROTOCOL_120) {
-			$this->getByte();
 		}
 		$data = $this->getString();
 		if (ord($data{0}) != 120 || (($decodedData = @zlib_decode($data)) === false)) {

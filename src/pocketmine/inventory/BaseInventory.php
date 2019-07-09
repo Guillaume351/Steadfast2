@@ -25,9 +25,10 @@ use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityInventoryChangeEvent;
 use pocketmine\event\inventory\InventoryOpenEvent;
 use pocketmine\item\Item;
-use pocketmine\network\multiversion\Multiversion;
 use pocketmine\Player;
 use pocketmine\Server;
+use pocketmine\network\protocol\v120\InventorySlotPacket;
+use pocketmine\network\protocol\v120\InventoryContentPacket;
 
 abstract class BaseInventory implements Inventory{
 
@@ -161,7 +162,7 @@ abstract class BaseInventory implements Inventory{
 	public function contains(Item $item){
 		$count = max(1, $item->getCount());
 		$checkDamage = $item->getDamage() === null ? false : true;
-		$checkTags = ($item->getId() == Item::ARROW || ($item->getCompound() === null)) ? false : true;
+		$checkTags = $item->getId() != Item::ARROW && $item->hasCompound();
 		foreach($this->getContents() as $i){
 			if($item->equals($i, $checkDamage, $checkTags)){
 				$count -= $i->getCount();
@@ -177,7 +178,7 @@ abstract class BaseInventory implements Inventory{
 	public function all(Item $item){
 		$slots = [];
 		$checkDamage = $item->getDamage() === null ? false : true;
-		$checkTags = $item->getCompound() === null ? false : true;
+		$checkTags = $item->hasCompound();
 		foreach($this->getContents() as $index => $i){
 			if($item->equals($i, $checkDamage, $checkTags)){
 				$slots[$index] = $i;
@@ -189,7 +190,7 @@ abstract class BaseInventory implements Inventory{
 
 	public function remove(Item $item){
 		$checkDamage = $item->getDamage() === null ? false : true;
-		$checkTags = $item->getCompound() === null ? false : true;
+		$checkTags = $item->hasCompound();
 
 		foreach($this->getContents() as $index => $i){
 			if($item->equals($i, $checkDamage, $checkTags)){
@@ -201,7 +202,7 @@ abstract class BaseInventory implements Inventory{
 	public function first(Item $item){
 		$count = max(1, $item->getCount());
 		$checkDamage = $item->getDamage() === null ? false : true;
-		$checkTags = $item->getCompound() === null ? false : true;
+		$checkTags = $item->hasCompound();
 
 		foreach($this->getContents() as $index => $i){
 			if($item->equals($i, $checkDamage, $checkTags) and $i->getCount() >= $count){
@@ -225,7 +226,7 @@ abstract class BaseInventory implements Inventory{
 	public function canAddItem(Item $item){
 		$item = clone $item;
 		$checkDamage = $item->getDamage() === null ? false : true;
-		$checkTags = $item->getCompound() === null ? false : true;
+		$checkTags = $item->hasCompound();
 		for($i = 0; $i < $this->getSize(); ++$i){
 			$slot = $this->getItem($i);
 			if($item->equals($slot, $checkDamage, $checkTags)){
@@ -326,8 +327,10 @@ abstract class BaseInventory implements Inventory{
 				continue;
 			}
 
+			$checkDamage = $slot->getDamage() === null ? false : true;
+			$checkCompound = $slot->getId() != Item::ARROW && $slot->hasCompound();
 			foreach($itemSlots as $index => $slot){
-				if($slot->equals($item, $slot->getDamage() === null ? false : true, ($slot->getId() == Item::ARROW || $slot->getCompound() === null) ? false : true)){
+				if($slot->equals($item, $checkDamage, $checkCompound)){
 					$amount = min($item->getCount(), $slot->getCount());
 					$slot->setCount($slot->getCount() - $amount);
 					$item->setCount($item->getCount() - $amount);
@@ -439,7 +442,10 @@ abstract class BaseInventory implements Inventory{
 				$this->close($player);
 				continue;
 			}
-			Multiversion::sendContainer($player, $id, $slots);
+			$pk = new InventoryContentPacket();
+			$pk->inventoryID = $id;
+			$pk->items = $slots;
+			$player->dataPacket($pk);
 		}
 	}
 
@@ -458,7 +464,11 @@ abstract class BaseInventory implements Inventory{
 				$this->close($player);
 				continue;
 			}
-			Multiversion::sendContainerSlot($player, $id, $item, $index);
+			$pk = new InventorySlotPacket();
+			$pk->containerId = $id;
+			$pk->item = $item;
+			$pk->slot = $index;
+			$player->dataPacket($pk);
 		}
 	}
 
