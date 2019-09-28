@@ -63,7 +63,7 @@ class SimpleTransactionData {
 	}
 
 	public function isUpdateEnchantSlotTransaction() {
-		return $this->action == self::ACTION_ENCH_ITEM || $this->action == self::ACTION_ENCH_LAPIS;
+		return $this->action == self::ACTION_ENCH_ITEM || $this->action == self::ACTION_ENCH_LAPIS || ($this->inventoryId == Protocol120::CONTAINER_ID_CURSOR_SELECTED && ($this->slot == 14 || $this->slot == 15));
 	}
 	
 	/**
@@ -80,10 +80,35 @@ class SimpleTransactionData {
 				break;
 			case Protocol120::CONTAINER_ID_CURSOR_SELECTED:
 				$inventory = $player->getInventory();
-				$slot = PlayerInventory::CURSOR_INDEX;
+				if($this->slot == 0) {
+					$slot = PlayerInventory::CURSOR_INDEX;
+				} elseif ($this->slot == 50) {
+					$slot = PlayerInventory::CRAFT_RESULT_INDEX;
+				} elseif ($this->slot > 27 && $this->slot < 41) {
+					if ($this->slot < 32) {
+						$slot = PlayerInventory::CRAFT_INDEX_0 - $this->slot + 28;
+					} else {
+						$slot = PlayerInventory::CRAFT_INDEX_0 - $this->slot + 32;
+					}
+				} elseif($this->slot == 14 || $this->slot == 15) {
+					$currentWindowId = $player->getCurrentWindowId();
+					if ($currentWindowId != $this->inventoryId) {
+						$inventory = $player->getCurrentWindow();
+						switch ($this->slot) {
+							case 14:
+								$slot = 0;
+								break;
+							case 15:
+								$slot = 1;
+								break;
+						}
+					}
+				} else {
+					return null;
+				}
 				break;
 			case Protocol120::CONTAINER_ID_OFFHAND:
-				$inventory = $player->getInventory();
+				$inventory = $player->getInventory();			
 				$slot = $inventory->getSize() + 4;
 				break;
 			case Protocol120::CONTAINER_ID_ARMOR:
@@ -111,9 +136,6 @@ class SimpleTransactionData {
 				switch ($this->action) {
 					case self::ACTION_CRAFT_GET_RESULT:
 						$slot = PlayerInventory::CRAFT_RESULT_INDEX;
-						if ($inventory->isQuickCraftEnabled()) {
-							$inventory->setQuickCraftMode(false);
-						}
 						break;
 					// client send slot 0 for all craft transactions by quick craft, so we need manage it manually
 					case self::ACTION_CRAFT_USE:
@@ -149,6 +171,13 @@ class SimpleTransactionData {
 				break;
 			
 		}
+		if (is_null($inventory)) {
+			return null;
+		}
 		return new BaseTransaction($inventory, $slot, $this->oldItem, $this->newItem);
+	}
+	
+	public function isCraftResultTransaction() {
+		return $this->inventoryId == Protocol120::CONTAINER_ID_NONE && $this->action == self::ACTION_CRAFT_GET_RESULT || $this->inventoryId == Protocol120::CONTAINER_ID_CURSOR_SELECTED && $this->slot == 50;
 	}
 }

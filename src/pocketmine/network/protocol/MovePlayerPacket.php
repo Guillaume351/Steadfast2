@@ -73,7 +73,7 @@ class MovePlayerPacket extends PEPacket{
 		$this->putLFloat($this->x);
 		$this->putLFloat($this->y);
 		$this->putLFloat($this->z);
-
+	
 		$this->putLFloat($this->pitch);
 		$this->putLFloat($this->yaw);
 
