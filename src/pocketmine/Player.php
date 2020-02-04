@@ -427,6 +427,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 	protected $doDaylightCycle = true;
 	private $lastQuickCraftTransactionGroup = [];
 	protected $additionalSkinData = [];
+	protected $playerListIsSent = false;
 
 	public function getLeaveMessage(){
 		return "";
@@ -1792,7 +1793,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 				}
 				$this->rawUUID = $this->uuid->toBinary();
 				$this->clientSecret = $packet->clientSecret;
-				$this->checkSkinGeometry($packet->skinGeometryName, $packet->additionalSkinData);
 				$this->setSkin($packet->skin, $packet->skinName, $packet->skinGeometryName, $packet->skinGeometryData, $packet->capeData, $packet->premiunSkin);
                 if ($packet->osType > 0) {
                     $this->deviceType = $packet->osType;
@@ -1931,11 +1931,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 						if (!$this->isCreative()) {
 							$block = $this->level->getBlock(new Vector3($packet->x, $packet->y, $packet->z));
 							$breakTime = ceil($block->getBreakTime($this->inventory->getItemInHand()) * 20);
-							$up = $block->getSide(1);
-							if ($up->getId() === Block::FIRE) {
-								$pk = new UpdateBlockPacket();
-								$pk->records[] = [$up->getX(), $up->getZ(), $up->getY(), Block::FIRE, 0, UpdateBlockPacket::FLAG_ALL];
-								$this->dataPacket($pk);
+							$fireBlock = $block->getSide($packet->face);
+							if ($fireBlock->getId() === Block::FIRE) {
+								$fireBlock->onUpdate(Level::BLOCK_UPDATE_TOUCH);
 							}
 							if ($breakTime > 0) {
 								$pk = new LevelEventPacket();
@@ -2016,6 +2014,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 						break;
 					case 'CRACK_BLOCK':
 						$this->crackBlock($packet);
+						break;
+					case 'CHANGE_DIMENSION_ACK':
+						$this->onDimensionChanged();
 						break;
 				}
 
@@ -2238,9 +2239,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 				$pk = new ChunkRadiusUpdatePacket();
 				$pk->radius = $packet->radius;
 				$this->dataPacket($pk);
-				$this->loggedIn = true;
-				$this->scheduleUpdate();
-				$this->justCreated = false;
+				if (!$this->loggedIn && $this->loginCompleted) {
+					$this->loggedIn = true;
+					$this->scheduleUpdate();
+					$this->justCreated = false;
+				}
 				//Timings::$timerChunkRudiusPacket->stopTiming();
 				break;
 			case 'COMMAND_STEP_PACKET':
@@ -2329,6 +2332,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 			case 'INVENTORY_TRANSACTION_PACKET':
 				switch ($packet->transactionType) {
 					case InventoryTransactionPacket::TRANSACTION_TYPE_INVENTORY_MISMATCH:
+						$this->sendAllInventories();
 						break;
 					case InventoryTransactionPacket::TRANSACTION_TYPE_NORMAL:
 						$this->normalTransactionLogic($packet);
@@ -3905,26 +3909,28 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 			case 4:
 			case 5:
 				$blockVector = new Vector3($blockPosition['x'], $blockPosition['y'], $blockPosition['z']);
-				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
+				if ($this->distanceSquared($blockVector) < 49) {
+					$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
 
-				$itemInHand = $this->inventory->getItemInHand();
-				if ($blockVector->distance($this) > 10 || $this->isSpectator()) {
+					$itemInHand = $this->inventory->getItemInHand();
+					if ($blockVector->distance($this) > 10 || $this->isSpectator()) {
 
-				} else if ($this->isCreative() && !$this->isSpectator()) {
-					if ($this->level->useItemOn($blockVector, $itemInHand, $face, $clickPosition['x'], $clickPosition['y'], $clickPosition['z'], $this) === true) {
-						return;
-					}
-				} else if (!$itemInHand->deepEquals($item)) {
-	//						$this->inventory->sendHeldItem($this);
-				} else {
-					$oldItem = clone $itemInHand;
-					//TODO: Implement adventure mode checks
-					if ($this->level->useItemOn($blockVector, $itemInHand, $face, $clickPosition['x'], $clickPosition['y'], $clickPosition['z'], $this)) {
-						if (!$itemInHand->deepEquals($oldItem) || $itemInHand->getCount() !== $oldItem->getCount()) {
-							$this->inventory->setItemInHand($itemInHand, $this);
-							$this->inventory->sendHeldItem($this->hasSpawned);
+					} else if ($this->isCreative() && !$this->isSpectator()) {
+						if ($this->level->useItemOn($blockVector, $itemInHand, $face, $clickPosition['x'], $clickPosition['y'], $clickPosition['z'], $this) === true) {
+							return;
 						}
-						return;
+					} else if (!$itemInHand->deepEquals($item)) {
+		//						$this->inventory->sendHeldItem($this);
+					} else {
+						$oldItem = clone $itemInHand;
+						//TODO: Implement adventure mode checks
+						if ($this->level->useItemOn($blockVector, $itemInHand, $face, $clickPosition['x'], $clickPosition['y'], $clickPosition['z'], $this)) {
+							if (!$itemInHand->deepEquals($oldItem) || $itemInHand->getCount() !== $oldItem->getCount()) {
+								$this->inventory->setItemInHand($itemInHand, $this);
+								$this->inventory->sendHeldItem($this->hasSpawned);
+							}
+							return;
+						}
 					}
 				}
 
@@ -3972,14 +3978,28 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 					}
 					return;
 				}
-				if (isset(self::$foodData[$itemInHand->getId()])) {
-					if ($this->getFood() >= self::FOOD_LEVEL_MAX) {
+				if ($itemInHand instanceof Armor) {
+					$this->inventory->setItem($this->inventory->getHeldItemSlot(), $this->inventory->getArmorItem($itemInHand::SLOT_NUMBER));
+					$this->inventory->setArmorItem($itemInHand::SLOT_NUMBER, $itemInHand);
+				} elseif (($isPotion = ($itemInHand instanceof Potion)) || isset(self::$foodData[$itemInHand->getId()])) {
+					if ($isPotion && !$itemInHand->canBeConsumed() || !$isPotion && $this->getFood() >= self::FOOD_LEVEL_MAX) {
 						$this->startAction = -1;
 						return;
-					} elseif ($this->startAction > -1) {
+					}
+					if ($this->startAction > -1) {
 						$diff = ($this->server->getTick() - $this->startAction);
 						if ($diff > 20 && $diff < 100) {
-							$this->eatFoodInHand();
+							if ($isPotion) {
+								$ev = new PlayerItemConsumeEvent($this, $itemInHand);
+								$this->server->getPluginManager()->callEvent($ev);
+								if (!$ev->isCancelled()) {
+									$itemInHand->onConsume($this);
+								} else {
+									$this->inventory->sendContents($this);
+								}
+							} else {
+								$this->eatFoodInHand();
+							}
 						}
 						$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
 						$this->startAction = -1;
@@ -4053,20 +4073,21 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 		if($this->spawned === false or $this->blocked === true or $this->dead === true){
 			return;
 		}
-
+		
 		$vector = new Vector3($blockPosition['x'], $blockPosition['y'], $blockPosition['z']);
-		$item = $this->inventory->getItemInHand();
+		if ($this->distanceSquared($vector) < 49) {
+			$item = $this->inventory->getItemInHand();
+			$oldItem = clone $item;
 
-		$oldItem = clone $item;
-
-		if($this->level->useBreakOn($vector, $item, $this) === true){
-			if($this->isSurvival()){
-				if(!$item->equals($oldItem, true) or $item->getCount() !== $oldItem->getCount()){
-					$this->inventory->setItemInHand($item, $this);
-					$this->inventory->sendHeldItem($this->hasSpawned);
+			if ($this->level->useBreakOn($vector, $item, $this) === true) {
+				if ($this->isSurvival()) {
+					if (!$item->equals($oldItem, true) or $item->getCount() !== $oldItem->getCount()) {
+						$this->inventory->setItemInHand($item, $this);
+						$this->inventory->sendHeldItem($this->hasSpawned);
+					}
 				}
+				return;
 			}
-			return;
 		}
 
 		$this->inventory->sendContents($this);
@@ -4310,6 +4331,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 			$this->actionsNum['CRACK_BLOCK'] = 0;
 		}
 		$block = $this->level->getBlock(new Vector3($packet->x, $packet->y, $packet->z));
+		if ($this->distanceSquared($block) > 49) {
+			return;
+		}
 		$blockPos = [
 			'x' => $packet->x,
 			'y' => $packet->y,
@@ -4815,17 +4839,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 	}
 
 	public function updatePlayerSkin($oldSkinName, $newSkinName) {
-		$pk = new PlayerSkinPacket();
-		$pk->uuid = $this->getUniqueId();
-		$pk->newSkinId = $this->skinName;
-		$pk->newSkinName = $newSkinName;
-		$pk->oldSkinName = $oldSkinName;
-		$pk->newSkinByteData = $this->skin;
-		$pk->newCapeByteData = $this->capeData;
-		$pk->newSkinGeometryName = $this->skinGeometryName;
-		$pk->newSkinGeometryData = $this->skinGeometryData;
-		$pk->additionalSkinData = $this->additionalSkinData;
-		$this->server->batchPackets($this->server->getOnlinePlayers(), [$pk]);
+		if ($this->playerListIsSent) {
+			$pk = new PlayerSkinPacket();
+			$pk->uuid = $this->getUniqueId();
+			$pk->newSkinId = $this->skinName;
+			$pk->newSkinName = $newSkinName;
+			$pk->oldSkinName = $oldSkinName;
+			$pk->newSkinByteData = $this->skin;
+			$pk->newCapeByteData = $this->capeData;
+			$pk->newSkinGeometryName = $this->skinGeometryName;
+			$pk->newSkinGeometryData = $this->skinGeometryData;
+			$pk->additionalSkinData = $this->additionalSkinData;
+			$this->server->batchPackets($this->server->getOnlinePlayers(), [$pk]);
+		}
 	}
 
 	/**
@@ -4957,6 +4983,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 			$pk->entries[] = [$this->getUniqueId(), $this->getId(), $this->getName(), $this->getSkinName(), $this->getSkinData(), $this->getCapeData(), $this->getSkinGeometryName(), $this->getSkinGeometryData()];
 			$this->server->batchPackets($otherPlayers, [$pk]);
 		}
+		$this->playerListIsSent = true;
 	}
 
 	public function setInteractButtonText($text, $force = false) {
@@ -5147,12 +5174,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer {
 		}
 	}
 	
-	protected function checkSkinGeometry(&$skinGeometryName, $additionalSkinData) {
-		if (empty($skinGeometryName) && !empty($additionalSkinData['SkinResourcePatch'])) {
-			if (($jsonSkinData = @json_decode($additionalSkinData['SkinResourcePatch'], true)) && isset($jsonSkinData['geometry']['default'])) {
-				$skinGeometryName = $jsonSkinData['geometry']['default'];
-			}
+	protected function sendAllInventories(){
+		if (!is_null($this->currentWindow)) {
+			$this->currentWindow->sendContents($this);
 		}
+		$this->getInventory()->sendContents($this);
+	}
+	
+	public function getAdditionalSkinData() {
+		return $this->additionalSkinData;
+	}
+	
+	protected function onDimensionChanged() {
+		
 	}
 
 }
