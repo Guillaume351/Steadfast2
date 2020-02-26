@@ -115,6 +115,8 @@ abstract class DataPacket extends BinaryStream{
 		self::$packetsIds[Info::PROTOCOL_385] = $oClass->getConstants();
 		self::$packetsIds[Info::PROTOCOL_386] = $oClass->getConstants();
 		self::$packetsIds[Info::PROTOCOL_389] = $oClass->getConstants();
+		self::$packetsIds[Info::PROTOCOL_392] = $oClass->getConstants();
+		self::$packetsIds[Info::PROTOCOL_393] = $oClass->getConstants();
 	}
 	
 }
