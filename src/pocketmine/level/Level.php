@@ -1205,7 +1205,7 @@ class Level implements ChunkManager, Metadatable{
 				}
 			}
 			
-			$breakTime = $player->isCreative() ? 0.15 : $target->getBreakTime($item);
+			$breakTime = $player->isCreative() ? 0.15 : $player->getBreakTime($target, $item);
 			if (!$ev->getInstaBreak() && ($player->lastBreak + $breakTime) >= microtime(true)) {
 				return false;
 			}
@@ -2423,5 +2423,12 @@ class Level implements ChunkManager, Metadatable{
 	
 	public function isClosed() {
 		return $this->closed;
+	}
+
+	public function isNight(){
+		if($this->time >= Level::TIME_NIGHT and $this->time < Level::TIME_SUNRISE){
+			return true;
+		}
+		return false;
 	}
 }
